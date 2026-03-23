@@ -30,10 +30,26 @@ const SPEC_DIR_V0_9 = resolve(
   "../../../../../../../specification/v0_9/json",
 );
 
+/**
+ * In Zod 4, `.describe()` sets metadata that does not propagate through
+ * `.optional()` / `.default()`. This helper unwraps wrappers to find the
+ * description on the innermost schema that carries it.
+ */
+function getZodDescription(zodObj: any): string | undefined {
+  if (!zodObj) return undefined;
+  if (zodObj.description !== undefined) return zodObj.description;
+  let current = zodObj;
+  while (current?._def?.innerType) {
+    current = current._def.innerType;
+    if (current.description !== undefined) return current.description;
+  }
+  return undefined;
+}
+
 function getZodShape(zodObj: any): any {
   let current = zodObj;
   while (current?._def) {
-    if (current._def.typeName === "ZodObject") return current.shape || current._def.shape();
+    if (current._def.type === "object") return current.shape ?? current._def.shape;
     current = current._def.innerType ?? current._def.schema;
   }
   return undefined;
@@ -42,7 +58,7 @@ function getZodShape(zodObj: any): any {
 function getZodArrayElement(zodObj: any): any {
   let current = zodObj;
   while (current?._def) {
-    if (current._def.typeName === "ZodArray") return current._def.type;
+    if (current._def.type === "array") return current._def.element;
     current = current._def.innerType ?? current._def.schema;
   }
   return undefined;
@@ -74,7 +90,7 @@ describe("Basic Components Schema Verification", () => {
       
       if (specificPropsDef.description) {
         assert.strictEqual(
-           api.schema.description,
+           getZodDescription(api.schema),
            specificPropsDef.description,
            `Component description mismatch for ${componentName}`
         );
@@ -92,7 +108,7 @@ describe("Basic Components Schema Verification", () => {
           const jsonProp = catalogCommonDef.properties[propName];
           if (zodShape[propName] && jsonProp.description) {
             assert.strictEqual(
-              zodShape[propName].description,
+              getZodDescription(zodShape[propName]),
               jsonProp.description,
               `Description mismatch for common property '${propName}' of component '${componentName}'`
             );
@@ -112,7 +128,7 @@ describe("Basic Components Schema Verification", () => {
         
         if (jsonProp.description) {
           assert.strictEqual(
-            zodPropSchema.description,
+            getZodDescription(zodPropSchema),
             jsonProp.description,
             `Description mismatch for property '${propName}' of component '${componentName}'`
           );
@@ -125,8 +141,8 @@ describe("Basic Components Schema Verification", () => {
           for (const itemProp of Object.keys(itemProps)) {
             if (itemProps[itemProp].description) {
                assert.strictEqual(
-                 zodItemShape[itemProp].description, 
-                 itemProps[itemProp].description, 
+                 getZodDescription(zodItemShape[itemProp]),
+                 itemProps[itemProp].description,
                  `Description mismatch for array item property '${propName}.${itemProp}' of component '${componentName}'`
                );
             }
@@ -145,7 +161,7 @@ describe("Basic Components Schema Verification", () => {
         let isOptional = false;
         let current = propSchema;
         while (current && current._def) {
-          if (current._def.typeName === "ZodOptional" || current._def.typeName === "ZodDefault") {
+          if (current._def.type === "optional" || current._def.type === "default") {
             isOptional = true;
             break;
           }

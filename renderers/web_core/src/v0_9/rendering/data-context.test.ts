@@ -307,7 +307,6 @@ describe("DataContext", () => {
           {
             code: "invalid_type",
             expected: "string",
-            received: "number",
             path: ["foo"],
             message: "Expected string, received number",
           },

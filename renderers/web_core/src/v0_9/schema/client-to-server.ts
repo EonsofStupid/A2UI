@@ -20,32 +20,32 @@ import { z } from "zod";
  * Reports a user-initiated action from a component.
  * Matches 'action' in specification/v0_9/json/client_to_server.json.
  */
-export const A2uiClientActionSchema = z.object({
+export const A2uiClientActionSchema = z.strictObject({
   name: z.string().describe("The name of the action, taken from the component's action.event.name property."),
   surfaceId: z.string().describe("The id of the surface where the event originated."),
   sourceComponentId: z.string().describe("The id of the component that triggered the event."),
   timestamp: z.string().datetime().describe("An ISO 8601 timestamp of when the event occurred."),
-  context: z.record(z.any()).describe("A JSON object containing the key-value pairs from the component's action.event.context, after resolving all data bindings."),
-}).strict();
+  context: z.record(z.string(), z.any()).describe("A JSON object containing the key-value pairs from the component's action.event.context, after resolving all data bindings."),
+});
 
 /**
  * Reports a client-side validation failure.
  */
-export const A2uiValidationErrorSchema = z.object({
+export const A2uiValidationErrorSchema = z.strictObject({
   code: z.literal("VALIDATION_FAILED"),
   surfaceId: z.string().describe("The id of the surface where the error occurred."),
   path: z.string().describe("The JSON pointer to the field that failed validation (e.g. '/components/0/text')."),
   message: z.string().describe("A short one or two sentence description of why validation failed."),
-}).strict();
+});
 
 /**
  * Reports a generic client-side error.
  */
-export const A2uiGenericErrorSchema = z.object({
+export const A2uiGenericErrorSchema = z.looseObject({
   code: z.string().refine(c => c !== "VALIDATION_FAILED"),
   message: z.string().describe("A short one or two sentence description of why the error occurred."),
   surfaceId: z.string().describe("The id of the surface where the error occurred."),
-}).passthrough();
+});
 
 /**
  * Reports a client-side error.
@@ -71,10 +71,10 @@ export const A2uiClientMessageSchema = z.object({
  * Schema for the client data model synchronization.
  * Matches specification/v0_9/json/client_data_model.json.
  */
-export const A2uiClientDataModelSchema = z.object({
+export const A2uiClientDataModelSchema = z.strictObject({
   version: z.literal("v0.9"),
-  surfaces: z.record(z.object({}).passthrough()).describe("A map of surface IDs to their current data models."),
-}).strict();
+  surfaces: z.record(z.string(), z.looseObject({})).describe("A map of surface IDs to their current data models."),
+});
 
 export type A2uiClientAction = z.infer<typeof A2uiClientActionSchema>;
 export type A2uiClientError = z.infer<typeof A2uiClientErrorSchema>;

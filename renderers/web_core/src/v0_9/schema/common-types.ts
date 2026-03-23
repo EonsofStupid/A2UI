@@ -24,7 +24,7 @@ export const DataBindingSchema = z.object({
 
 export const FunctionCallSchema = z.object({
   call: z.string().describe("The name of the function to call."),
-  args: z.record(z.any()).describe("Arguments passed to the function."),
+  args: z.record(z.string(), z.any()).describe("Arguments passed to the function."),
   returnType: z
     .enum(["string", "number", "boolean", "array", "object", "any", "void"])
     .default("boolean"),
@@ -35,10 +35,12 @@ export const LogicExpressionSchema: z.ZodType<any> = z.lazy(() =>
     z.object({ and: z.array(LogicExpressionSchema).min(1) }),
     z.object({ or: z.array(LogicExpressionSchema).min(1) }),
     z.object({ not: LogicExpressionSchema }),
-    z.intersection(
-      FunctionCallSchema,
-      z.object({ returnType: z.literal("boolean").optional() }),
-    ), // FunctionCall returning boolean
+    // FunctionCall returning boolean — merged object replaces z.intersection()
+    z.object({
+      call: z.string().describe("The name of the function to call."),
+      args: z.record(z.string(), z.any()).describe("Arguments passed to the function."),
+      returnType: z.literal("boolean").optional(),
+    }),
     z.object({ true: z.literal(true) }),
     z.object({ false: z.literal(false) }),
   ]),
@@ -122,7 +124,7 @@ export const ActionSchema = z.union([
     .object({
       event: z.object({
         name: z.string(),
-        context: z.record(DynamicValueSchema).optional(),
+        context: z.record(z.string(), DynamicValueSchema).optional(),
       }),
     })
     .describe("Triggers a server-side event."),
@@ -135,8 +137,7 @@ export const ActionSchema = z.union([
 /** Triggers a server-side event or a local client-side function. */
 export type Action = z.infer<typeof ActionSchema>;
 
-export const CheckRuleSchema = z.intersection(
-  LogicExpressionSchema,
+export const CheckRuleSchema = LogicExpressionSchema.and(
   z.object({
     message: z
       .string()
@@ -174,12 +175,11 @@ export type AccessibilityAttributes = z.infer<
 >;
 
 export const AnyComponentSchema = z
-  .object({
+  .looseObject({
     component: z.string().describe("The type name of the component."),
     id: ComponentIdSchema.optional(),
     weight: z.number().optional(),
   })
-  .passthrough()
   .describe("A generic A2UI component definition.");
 
 /** A generic A2UI component definition. */

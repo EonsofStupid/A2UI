@@ -1,6 +1,6 @@
 {
   "name": "@a2ui/react",
-  "version": "0.8.0",
+  "version": "0.9.0",
   "description": "React renderer for A2UI (Agent-to-User Interface)",
   "type": "module",
   "main": "./dist/index.cjs",
@@ -25,6 +25,26 @@
       "require": {
         "types": "./dist/v0_8/index.d.cts",
         "default": "./dist/v0_8/index.cjs"
+      }
+    },
+    "./v0_9": {
+      "import": {
+        "types": "./dist/v0_9/index.d.ts",
+        "default": "./dist/v0_9/index.js"
+      },
+      "require": {
+        "types": "./dist/v0_9/index.d.cts",
+        "default": "./dist/v0_9/index.cjs"
+      }
+    },
+    "./v0_9/components": {
+      "import": {
+        "types": "./dist/v0_9/components/index.d.ts",
+        "default": "./dist/v0_9/components/index.js"
+      },
+      "require": {
+        "types": "./dist/v0_9/components/index.d.cts",
+        "default": "./dist/v0_9/components/index.cjs"
       }
     },
     "./styles": {

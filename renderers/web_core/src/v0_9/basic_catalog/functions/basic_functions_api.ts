@@ -428,7 +428,7 @@ export const FormatDateApi = {
 export const PluralizeApi = {
   name: "pluralize" as const,
   returnType: "string" as const,
-  schema: z.object({
+  schema: z.looseObject({
     value: z.coerce.number(),
     zero: z.coerce.string().optional(),
     one: z.coerce.string().optional(),
@@ -436,7 +436,7 @@ export const PluralizeApi = {
     few: z.coerce.string().optional(),
     many: z.coerce.string().optional(),
     other: z.coerce.string(),
-  }).passthrough()
+  })
 };
 
 // Actions
